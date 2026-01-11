@@ -1,0 +1,169 @@
+// Counter.frr - Complete Ferrum demonstration
+// Shows all features of the .frr syntax
+
+import { create_signal } from "ferrum:state"
+import { css } from "ferrum:css"
+import { Button } from "./components/Button.frr"
+import { Card } from "./components/Card.frr"
+
+// Global reactive state
+state count = 0
+state name = "Ferrum Developer"
+state theme = "light"
+state tasks = [
+    {id: 1, text: "Build Ferrum framework", completed: true},
+    {id: 2, text: "Create amazing .frr syntax", completed: true},
+    {id: 3, text: "Conquer the web with Rust", completed: false}
+]
+
+// Main application
+App()
+    div.min-h-screen.bg-gray-50.dark_bg-gray-900
+        // Header with theme toggle
+        header.bg-white.dark_bg-gray-800.shadow-sm
+            div.max-w-7xl.mx-auto.px-4.py-6
+                div.flex.items-center.justify-between
+                    h1.text-2xl.font-bold.text-gray-900.dark_text-white 
+                        "🦀 Ferrum Counter App"
+                    
+                    Button(
+                        onclick: toggle_theme,
+                        variant: "outline"
+                    )
+                        {theme == "light" ? "🌙" : "☀️"}
+
+        // Main content area
+        main.max-w-7xl.mx-auto.py-6.sm_px-6.lg_px-8
+            div.grid.grid-cols-1.lg_grid-cols-2.gap-6
+                // Left column - Counter
+                Card(shadow: "lg", rounded: "xl")
+                    CardHeader
+                        h2.text-xl.font-semibold.text-gray-900 "Interactive Counter"
+                    
+                    CardBody
+                        p.text-gray-600.mb-4 
+                            "Demonstrates reactive state with Ferrum signals"
+                        
+                        // Counter controls
+                        div.flex.items-center.justify-center.gap-4.mb-6
+                            Button(
+                                onclick: set_count(count - 1),
+                                variant: "secondary",
+                                disabled: count <= 0
+                            )
+                                "−"
+                            
+                            div.text-3xl.font-bold.text-blue-600
+                                {count}
+                            
+                            Button(
+                                onclick: set_count(count + 1),
+                                variant: "primary"
+                            )
+                                "+"
+                        
+                        // Count statistics
+                        div.grid.grid-cols-2.gap-2.text-sm
+                            div.bg-blue-50.rounded.p-2
+                                span.font-medium "Double:"
+                                span.text-blue-600 {count * 2}
+                            div.bg-green-50.rounded.p-2
+                                span.font-medium "Square:"
+                                span.text-green-600 {count * count}
+
+                // Right column - Todo List
+                Card(shadow: "lg", rounded: "xl")
+                    CardHeader
+                        h2.text-xl.font-semibold.text-gray-900 "Task Manager"
+                    
+                    CardBody
+                        p.text-gray-600.mb-4 
+                            "Shows conditional rendering and list management"
+                        
+                        // Add new task
+                        div.flex.gap-2.mb-4
+                            Input(
+                                type: "text",
+                                value: new_task,
+                                placeholder: "Add new task...",
+                                onchange: set_new_task,
+                                class: css!(Flex(1))
+                            )
+                            Button(
+                                onclick: add_task,
+                                disabled: new_task.length == 0
+                            )
+                                "Add"
+                        
+                        // Task list
+                        div.space-y-2
+                            if tasks.length == 0
+                                p.text-center.text-gray-500.py-4
+                                    "No tasks yet. Add one above!"
+                            else
+                                for task in tasks
+                                    div.flex.items-center.gap-2.p-3.rounded.border(
+                                        class: task.completed ? 
+                                            css!(BgGray50, BorderGray200) : 
+                                            css!(BgWhite, BorderGray300)
+                                    )
+                                        // Checkbox
+                                        input(
+                                            type: "checkbox",
+                                            checked: task.completed,
+                                            onchange: toggle_task(task.id)
+                                        )
+                                        
+                                        // Task text
+                                        span.flex-1(
+                                            class: task.completed ? 
+                                                css!(LineThrough, TextGray500) : 
+                                                css!(TextGray900)
+                                        )
+                                            {task.text}
+                                        
+                                        // Delete button
+                                        Button(
+                                            onclick: delete_task(task.id),
+                                            variant: "outline",
+                                            size: "sm"
+                                        )
+                                            "×"
+
+        // Footer
+        footer.bg-white.dark_bg-gray-800.border-t
+            div.max-w-7xl.mx-auto.py-6.text-center
+                p.text-gray-600
+                    "Made with ❤️ using "
+                    a.text-blue-600.hover_text-blue-800(href: "https://github.com/ferrum-web/ferrum")
+                        "Ferrum"
+                    " - The Rust full-stack framework"
+
+// Theme toggling function
+toggle_theme()
+    set_theme(theme == "light" ? "dark" : "light")
+
+// Task management functions
+add_task()
+    if new_task.length > 0
+        set_tasks([
+            ...tasks,
+            {
+                id: Date.now(),
+                text: new_task,
+                completed: false
+            }
+        ])
+        set_new_task("")
+
+toggle_task(taskId)
+    set_tasks(
+        tasks.map(task => 
+            task.id == taskId ? 
+                {...task, completed: !task.completed} : 
+                task
+        )
+    )
+
+delete_task(taskId)
+    set_tasks(tasks.filter(task => task.id != taskId))

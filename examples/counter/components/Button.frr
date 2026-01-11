@@ -1,0 +1,45 @@
+// components/Button.frr - Reusable button component
+
+Button(
+    variant: "primary",  // primary, secondary, outline, ghost, danger
+    size: "md",         // sm, md, lg, xl
+    onclick: null,
+    disabled: false,
+    loading: false,
+    children: ""
+)
+    button.rounded.font-medium.transition-all.duration-200(
+        // Base styles
+        class: css!(
+            FontMedium, Transition("all", "200ms"), OutlineNone,
+            Focus(Ring(2), RingOffset(2), FocusRingColor)
+        ),
+        
+        // Size variants
+        class: size == "sm" ? css!(P(1), TextSm) :
+               size == "md" ? css!(P(2), TextBase) :
+               size == "lg" ? css!(P(3), TextLg) :
+               css!(P(4), TextXl),
+        
+        // Variant styles
+        class: variant == "primary" ? css!(BgBlue500, TextWhite, Hover(BgBlue600), BorderTransparent) :
+               variant == "secondary" ? css!(BgGray200, TextGray800, Hover(BgGray300), BorderTransparent) :
+               variant == "outline" ? css!(BgTransparent, TextGray800, Border, BorderGray300, Hover(BgGray50)) :
+               variant == "ghost" ? css!(BgTransparent, TextGray700, Hover(BgGray100)) :
+               variant == "danger" ? css!(BgRed500, TextWhite, Hover(BgRed600), BorderTransparent) :
+               css!(BgBlue500, TextWhite),
+        
+        // State styles
+        class: disabled ? css!(Opacity50, CursorNotAllowed, PointerEventsNone) : css!(),
+        class: loading ? css!(CursorWait) : css!(),
+        
+        onclick: onclick,
+        disabled: disabled || loading
+    )
+        if loading
+            // Loading spinner
+            span.inline-block.w-4.h-4.border-2.border-current.border-t-transparent.animate-spin.mr-2
+        else
+            span
+        
+        {children}

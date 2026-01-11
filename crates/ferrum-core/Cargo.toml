@@ -1,0 +1,24 @@
+[package]
+name = "ferrum-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+axum = { workspace = true, optional = true }
+leptos = { workspace = true, optional = true }
+leptos_axum = { workspace = true, optional = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+log = { workspace = true }
+wasm-bindgen = { workspace = true, optional = true }
+web-sys = { version = "0.3", features = ["Document", "Element", "HtmlElement", "Window", "console"], optional = true }
+
+[features]
+default = []
+server = ["axum", "leptos_axum"]
+client = ["leptos", "wasm-bindgen", "web-sys"]

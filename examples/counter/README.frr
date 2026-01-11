@@ -1,0 +1,170 @@
+// README.frr - Documentation for Ferrum DSL syntax
+// This file demonstrates the complete syntax and features of the Ferrum Resource (.frr) format
+
+/*
+Ferrum DSL (.frr) - A minimal, Rust-based web language
+
+🚀 FEATURES:
+- Type-safe component props
+- Reactive state management  
+- Built-in CSS utilities
+- Hot reload support
+- Auto-compilation to Rust
+
+📁 FILE STRUCTURE:
+├── src/
+│   ├── main.frr           # Entry point
+│   ├── components/        # Reusable components
+│   │   ├── Button.frr
+│   │   └── Card.frr
+│   └── pages/            # Route pages
+│       └── Home.frr
+├── style/               # Global styles
+└── tests/              # Test files
+*/
+
+Components are written as:
+ComponentName(prop: value, prop: value)
+    child_element
+    "text content"
+
+HTML-like elements:
+div#id.class1.class2 prop="value"
+    h1 "Title"
+    p "Content"
+
+CSS utilities:
+flex, block, grid, items-center, justify-between
+text-sm, text-base, text-lg, font-bold
+bg-blue-500, text-white, border, rounded
+p-2, m-4, gap-2, w-full, h-full
+
+State bindings:
+{signal} - reactive value
+{signal + 1} - expression
+{count} - direct access
+{user.name} - property access
+*/
+
+// 1. Basic component with props
+Button(
+    onclick: set_count(1),
+    variant: "primary",
+    size: "md"
+)
+    "Click me"
+
+// 2. HTML-like syntax with id, class, and props
+div#app.container.mx-auto.p-4
+    h1.text-2xl.font-bold "Hello World"
+    p.text-gray-600 "Welcome to Ferrum"
+
+// 3. Nested components
+Card(bg: "white", shadow: "lg")
+    header.p-4.border-b
+        h2 "Card Title"
+    
+    main.p-4
+        p "Card content goes here"
+    
+    footer.p-4.border-t
+        Button(variant: "outline") "Cancel"
+        Button(variant: "primary") "Submit"
+
+// 4. Conditional rendering
+div
+    if user.is_authenticated
+        p "Welcome back, " {user.name}!
+    else
+        Button(onclick: login) "Sign In"
+
+// 5. List rendering
+ul
+    for item in items
+        li.border.p-2
+            {item.name}
+            Badge(variant: "primary") {item.category}
+
+// 6. Form with validation
+Form(onSubmit: handleSubmit)
+    Input(
+        type: "email",
+        name: "email",
+        value: email,
+        error: email_error,
+        placeholder: "Enter your email",
+        required: true
+    )
+    
+    Select(name: "role", value: role, options: role_options)
+    
+    Checkbox(name: "agree", checked: agree, label: "I agree to terms")
+    
+    Button(
+        type: "submit",
+        disabled: !is_valid,
+        variant: "primary"
+    )
+        if submitting
+            LoadingSpinner(size: "sm")
+        "Submit"
+
+// 7. Layout with Grid
+Grid(cols: 1, mdCols: 3, gap: 4)
+    Card "Column 1"
+    Card "Column 2"  
+    Card "Column 3"
+
+// 8. Async data with Resource
+Resource(url: "/api/users", loading: loading, error: error, data: users)
+    if loading
+        LoadingSpinner()
+    else if error
+        ErrorMessage(message: error)
+    else
+        Table(data: users, columns: user_columns)
+
+// 9. Component with multiple variants
+Alert(
+    variant: "warning",  // success, warning, error, info
+    dismissible: true
+)
+    div.flex.items-center.justify-between
+        div.flex.items-center
+            svg.w-5.h-5(fill="currentColor") "warning-icon"
+            p.ml-3 "Warning message"
+        
+        button.ml-auto(onclick: dismiss) "×"
+
+// 10. Navigation with router
+Router
+    Nav
+        Link(href: "/") "Home"
+        Link(href: "/about") "About"
+        Link(href: "/contact") "Contact"
+    
+    main
+        Route(path: "/") <HomePage />
+        Route(path: "/about") <AboutPage />
+        Route(path: "/contact") <ContactPage />
+
+// 11. Styling with CSS-in-Rust
+Button(
+    onclick: handleClick,
+    style: css!(
+        BgBlue500, TextWhite, Rounded, P(2),
+        Hover(BgBlue600),
+        Focus(OutlineNone, Ring(2), RingBlue500),
+        Transition("all", "150ms")
+    )
+)
+    "Styled Button"
+
+// 12. Component composition
+Modal(isOpen: is_modal_open, onClose: closeModal)
+    ModalHeader(title: "Confirm Action")
+    ModalBody
+        p "Are you sure you want to delete this item?"
+    ModalFooter
+        Button(variant: "outline", onclick: closeModal) "Cancel"
+        Button(variant: "danger", onclick: confirm_delete) "Delete"

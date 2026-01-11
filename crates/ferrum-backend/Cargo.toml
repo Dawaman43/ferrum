@@ -1,0 +1,20 @@
+[package]
+name = "ferrum-backend"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+tokio = { workspace = true }
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+leptos = { workspace = true }
+leptos_axum = { workspace = true }
+leptos_meta = { workspace = true }
+log = { workspace = true }
+ferrum-core = { path = "../ferrum-core", features = ["server"] }
+ferrum-shared = { path = "../ferrum-shared" }

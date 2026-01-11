@@ -1,0 +1,18 @@
+[package]
+name = "ferrum-dev-server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { workspace = true }
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+warp = "0.3"
+notify = "6.1"
+anyhow = { workspace = true }
+ferrum-core = { path = "../ferrum-core" }
+console_log = { workspace = true }
+log = { workspace = true }

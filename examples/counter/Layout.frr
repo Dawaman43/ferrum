@@ -1,0 +1,107 @@
+// Layout.frm - Layout components for Ferrum
+// Demonstrates grid, flexbox, and responsive layouts
+
+// Container component for responsive width
+Container(maxWidth: "xl", padding: true, children: "")
+    div(
+        class: padding ? css!(MaxWXl, MxAuto, Px(4)) : css!(MaxWXl, MxAuto)
+    )
+        {children}
+
+// Grid component
+Grid(
+    cols: 1,
+    gap: 4,
+    smCols: null,
+    mdCols: null,
+    lgCols: null
+)
+    div(
+        class: css!(Grid, Gap(gap)),
+        class: smCols ? css!(GridColsSm(smCols)) : css!(),
+        class: mdCols ? css!(GridColsMd(mdCols)) : css!(),
+        class: lgCols ? css!(GridColsLg(lgCols)) : css!()
+    )
+        {children}
+
+// Flex component
+Flex(
+    direction: "row",
+    align: "start",
+    justify: "start",
+    gap: 0,
+    wrap: false
+)
+    div(
+        class: css!(
+            Flex,
+            direction == "row" ? FlexRow : FlexCol,
+            align == "center" ? ItemsCenter :
+            align == "start" ? ItemsStart :
+            align == "end" ? ItemsEnd : ItemsStretch,
+            justify == "center" ? JustifyCenter :
+            justify == "between" ? JustifyBetween :
+            justify == "around" ? JustifyAround : JustifyStart,
+            Gap(gap),
+            wrap ? FlexWrap : css!()
+        )
+    )
+        {children}
+
+// Stack component for vertical spacing
+Stack(spacing: 4, children: "")
+    div.flex.flex-col(class: css!(Gap(spacing)))
+        {children}
+
+// Card component
+Card(
+    bg: "white",
+    shadow: "md",
+    rounded: "md",
+    padding: 4,
+    children: ""
+)
+    div(
+        class: css!(
+            bg == "white" ? BgWhite : bg == "gray" ? BgGray50 : BgTransparent,
+            shadow == "none" ? css!() :
+            shadow == "sm" ? Shadow :
+            shadow == "md" ? Shadow : ShadowLg,
+            rounded == "none" ? css!() :
+            rounded == "sm" ? Rounded :
+            rounded == "md" ? Rounded : RoundedLg,
+            P(padding)
+        )
+    )
+        {children}
+
+// Divider component
+Divider(thickness: 1, color: "gray", spacing: 4)
+    div(
+        class: color == "gray" ? BgGray200 :
+               color == "blue" ? BgBlue200 : BgGray300,
+        class: thickness == 1 ? css!(H(1), My(spacing)) :
+               thickness == 2 ? css!(H(2), My(spacing)) :
+               css!(H(4), My(spacing))
+    )
+
+// Spacer component
+Spacer(size: 4)
+    div(class: size == 2 ? css!(H(2)) :
+               size == 4 ? css!(H(4)) :
+               size == 6 ? css!(H(6)) :
+               size == 8 ? css!(H(8)) : css!(H(4)))
+
+// Section component
+Section(id: "", bg: "white", padding: "lg", children: "")
+    section(
+        id: id,
+        class: css!(
+            bg == "white" ? BgWhite : bg == "gray" ? BgGray50 : bg == "blue" ? BgBlue50 : BgWhite,
+            padding == "sm" ? Py(4) :
+            padding == "md" ? Py(8) :
+            padding == "lg" ? Py(16) : Py(8)
+        )
+    )
+        Container(maxWidth: "xl")
+            {children}

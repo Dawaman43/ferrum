@@ -1,0 +1,51 @@
+// Button.frm - Reusable button component
+// Demonstrates component definition with variants and styling
+
+// Button component with multiple variants
+Button(
+    variant: "primary",  // primary, secondary, outline
+    size: "md",         // sm, md, lg
+    onclick: null,
+    disabled: false,
+    children: ""
+)
+    // Base button class
+    button.rounded.font-medium.transition-transform(
+        class: css!(
+            Border, Rounded, FontMedium,
+            Hover(Style::new().property("transform", "scale(1.05)"))
+        ),
+        
+        // Size variants
+        class: size == "sm" ? css!(P(1), TextSm) :
+               size == "lg" ? css!(P(3), TextLg) :
+               css!(P(2), TextBase),
+        
+        // Variant styles
+        class: variant == "primary" ? css!(BgBlue500, TextWhite, BorderTransparent) :
+               variant == "secondary" ? css!(BgGray200, TextGray800, BorderTransparent) :
+               css!(BgTransparent, TextBlue500, Border, BorderBlue500),
+        
+        // Disabled state
+        class: disabled ? css!(Opacity50, CursorNotAllowed) : css!(),
+        
+        onclick: onclick,
+        disabled: disabled
+    )
+        {children}
+
+// Link component that looks like a button
+LinkButton(
+    href: "#",
+    variant: "primary",
+    size: "md"
+)
+    a.rounded.font-medium.inline-block.text-center(
+        href: href,
+        class: variant == "primary" ? css!(BgBlue500, TextWhite, P(2), Rounded) :
+               css!(BgGray200, TextGray800, P(2), Rounded),
+        class: size == "sm" ? css!(P(1), TextSm) :
+               size == "lg" ? css!(P(3), TextLg) :
+               css!()
+    )
+        {children}

@@ -1,0 +1,17 @@
+!greeting "Hello World"
+
+!button "Click me" !onclick counter++
+
+!if counter > 5
+    !success "Great job!"
+!else
+    !info "Keep clicking..."
+
+!for item in ["Apple", "Banana", "Orange"]
+    !fruit item
+
+!card
+    !title "Welcome to Ferrum"
+    !content
+        "This is a new language built on Rust!"
+        "Simple, fast, and fun to use!"

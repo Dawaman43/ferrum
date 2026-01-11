@@ -1,0 +1,103 @@
+// Data.frm - Data fetching and display components
+// Demonstrates async data handling and loading states
+
+// Resource component for async data
+Resource(url: "", loading: true, error: null, data: null)
+    if loading
+        LoadingSpinner(size: "md")
+    else if error
+        ErrorMessage(message: error)
+    else if data
+        {children}
+    else
+        EmptyState(message: "No data available")
+
+// Loading spinner component
+LoadingSpinner(size: "sm")
+    div.flex.items-center.justify-center(
+        class: size == "sm" ? css!(W(4), H(4)) :
+               size == "md" ? css!(W(6), H(6)) :
+               css!(W(8), H(8))
+    )
+        div.animate-spin.rounded.border.border-gray-300.border-t-blue-600(
+            class: size == "sm" ? css!(W(3), H(3), Border(2)) :
+                   size == "md" ? css!(W(5), H(5), Border(2)) :
+                   css!(W(7), H(7), Border(3))
+        )
+
+// Error message component
+ErrorMessage(message: "")
+    div.bg-red-50.border.border-red-200.rounded-md.p-4
+        div.flex
+            div.flex-shrink-0
+                svg.w-5.h-5.text-red-400(fill="currentColor")
+                    path(d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z")
+            div.ml-3
+                h3.text-sm.font-medium.text-red-800 "Error"
+                p.text-sm.text-red-700 {message}
+
+// Empty state component
+EmptyState(icon: "", title: "No data", message: "")
+    div.text-center.py-12
+        if icon
+            div.mx-auto.w-12.h-12.text-gray-400
+                {icon}
+        
+        h3.mt-2.text-sm.font-medium.text-gray-900 {title}
+        p.mt-1.text-sm.text-gray-500 {message}
+
+// Table component
+Table(data: [], columns: [], loading: false, error: null)
+    Resource(url: "", loading: loading, error: error, data: data)
+        div.overflow-hidden.shadow.ring-1.ring-black.ring-opacity-5.md-rounded-lg
+            table.min-w-full.divide-y.divide-gray-300
+                thead.bg-gray-50
+                    tr
+                        for column in columns
+                            th.px-6.py-3.text-left.text-xs.font-medium.text-gray-500.uppercase.tracking-wider
+                                {column.header}
+                
+                tbody.bg-white.divide-y.divide-gray-200
+                    for row in data
+                        tr
+                            for column in columns
+                                td.px-6.py-4.whitespace-nowrap.text-sm.text-gray-900
+                                    {column.accessor(row)}
+
+// List component
+List(items: [], loading: false, error: null, renderItem: null)
+    Resource(url: "", loading: loading, error: error, data: items)
+        div.space-y-2
+            for item in items
+                div.border.border-gray-200.rounded-md.p-4
+                    {renderItem(item)}
+
+// Badge component
+Badge(variant: "primary", size: "sm", children: "")
+    span.inline-flex.items-center.px-2.py-1.rounded-full.text-xs.font-medium(
+        class: variant == "primary" ? css!(BgBlue100, TextBlue800) :
+               variant == "success" ? css!(BgGreen100, TextGreen800) :
+               variant == "warning" ? css!(BgYellow100, TextYellow800) :
+               css!(BgGray100, TextGray800),
+        class: size == "sm" ? css!(TextXs) : css!(TextSm)
+    )
+        {children}
+
+// Avatar component
+Avatar(src: "", alt: "", size: "md", name: "")
+    if src
+        img(
+            src: src,
+            alt: alt,
+            class: size == "sm" ? css!(W(8), H(8), RoundedFull) :
+                   size == "md" ? css!(W(10), H(10), RoundedFull) :
+                   css!(W(12), H(12), RoundedFull)
+        )
+    else
+        div(
+            class: size == "sm" ? css!(W(8), H(8), RoundedFull, BgGray300, Flex, ItemsCenter, JustifyCenter, TextXs, FontBold, TextGray600) :
+                   size == "md" ? css!(W(10), H(10), RoundedFull, BgGray300, Flex, ItemsCenter, JustifyCenter, TextSm, FontBold, TextGray600) :
+                   css!(W(12), H(12), RoundedFull, BgGray300, Flex, ItemsCenter, JustifyCenter, TextBase, FontBold, TextGray600)
+        )
+            // Get initials from name
+            {name.split(" ").map(part => part[0]).join("").toUpperCase().substring(0, 2)}

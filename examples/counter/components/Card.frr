@@ -1,0 +1,65 @@
+// Card.frr - Reusable card component
+// Demonstrates component composition and variants
+
+Card(
+    variant: "default",  // default, elevated, outlined, filled
+    padding: "md",       // none, sm, md, lg, xl
+    rounded: "md",       // none, sm, md, lg, xl
+    shadow: "md",        // none, sm, md, lg, xl
+    bg: "white",         // white, gray, blue, green, red, yellow
+    children: ""
+)
+    div.overflow-hidden.transition-all.duration-200(
+        // Background colors
+        class: bg == "white" ? BgWhite :
+               bg == "gray" ? BgGray50 :
+               bg == "blue" ? BgBlue50 :
+               bg == "green" ? BgGreen50 :
+               bg == "red" ? BgRed50 :
+               bg == "yellow" ? BgYellow50 :
+               BgWhite,
+        
+        // Padding
+        class: padding == "none" ? css!() :
+               padding == "sm" ? P(4) :
+               padding == "md" ? P(6) :
+               padding == "lg" ? P(8) :
+               padding == "xl" ? P(10) :
+               P(6),
+        
+        // Rounded corners
+        class: rounded == "none" ? css!() :
+               rounded == "sm" ? Rounded :
+               rounded == "md" ? RoundedMd :
+               rounded == "lg" ? RoundedLg :
+               rounded == "xl" ? RoundedXl :
+               RoundedMd,
+        
+        // Shadow
+        class: shadow == "none" ? css!() :
+               shadow == "sm" ? ShadowSm :
+               shadow == "md" ? Shadow :
+               shadow == "lg" ? ShadowLg :
+               shadow == "xl" ? ShadowXl :
+               Shadow,
+        
+        // Variant styles
+        class: variant == "elevated" ? css!(ShadowLg, Border(0)) :
+               variant == "outlined" ? css!(Border, BorderGray200, ShadowNone) :
+               variant == "filled" ? css!(BorderGray200, BgGray100) :
+               css!(ShadowSm, Border, BorderGray100)
+    )
+        {children}
+
+// Card sub-components
+CardHeader(children: "")
+    div.border-b.border-gray-200.bg-gray-50.px-6.py-4
+        {children}
+
+CardBody(children: "")
+    div.px-6.py-4
+        {children}
+
+CardFooter(children: "")
+    div.border-t.border-gray-200.bg-gray-50.px-6.py-4
+        {children}

@@ -1,0 +1,46 @@
+// ultra_simple.frr - The NEW Ferrum Language
+// Simple, fast, fun - NOT Rust with HTML!
+
+// Basic elements with ! syntax
+!greeting "Hello World!"
+
+// Variables are automatic
+!let counter = 0
+!let name = "Ferrum"
+
+// Elements are smart
+!div.center.large
+    !h1 "Welcome to {name}!"
+    !p "This is the new language!"
+    
+    // Reactive by default
+    !button.primary !onclick counter++
+        "Click count: {counter}"
+
+// Simple styling
+!card.shadow
+    !title "Simple Language"
+    !content
+        !p "No ceremony, just features!"
+        !button.success.large "Get Started"
+
+// Lists are easy
+!for item in ["Simple", "Fast", "Fun"]
+    !item item
+
+// Conditions are natural
+!if counter > 5
+    !success "Great job!"
+!else
+    !info "Keep clicking!"
+
+// Forms are simple
+!form !onsubmit submit_form
+    !input.email.required !bind email placeholder="Enter email"
+    !button.primary !disabled submitting "Submit"
+
+// Navigation is easy
+!nav
+    !link "/" active home ? "Home"
+    !link "/about" active about ? "About"
+    !link "/contact" active contact ? "Contact"

@@ -1,0 +1,28 @@
+[package]
+name = "ferrum-frontend"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+leptos = { workspace = true }
+leptos_meta = { workspace = true }
+leptos_router = { workspace = true }
+wasm-bindgen = { workspace = true }
+console_log = { workspace = true }
+log = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+ferrum-core = { path = "../ferrum-core", features = ["client"] }
+ferrum-shared = { path = "../ferrum-shared" }
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+  "Document",
+  "Element",
+  "HtmlElement",
+  "Window",
+  "console",
+]

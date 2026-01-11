@@ -1,0 +1,97 @@
+// Form.frm - Form components for Ferrum
+// Demonstrates form handling with validation
+
+// Form component
+Form(onSubmit: handleSubmit, children: "")
+    form(onSubmit: onSubmit, class: css!(Flex, FlexCol, Gap(2)))
+        {children}
+
+// Input component with validation
+Input(
+    type: "text",
+    name: "",
+    value: "",
+    placeholder: "",
+    required: false,
+    error: "",
+    onChange: null,
+    class: ""
+)
+    div
+        input(
+            type: type,
+            name: name,
+            value: value,
+            placeholder: placeholder,
+            required: required,
+            onchange: onChange,
+            class: css!(
+                Border, Rounded, P(2), TextBase, WFull,
+                error ? BgRed50, BorderRed500 : BorderGray300
+            )
+        )
+        
+        // Error message
+        if error
+            p.text-sm.text-red-500.mt-1
+                {error}
+
+// Select component
+Select(name: "", value: "", options: [], onChange: null)
+    select(
+        name: name,
+        value: value,
+        onchange: onChange,
+        class: css!(Border, Rounded, P(2), TextBase, WFull, BorderGray300)
+    )
+        option(value: "") "Select an option..."
+        
+        for option in options
+            option(value: option.value, selected: option.value == value)
+                {option.label}
+
+// Textarea component
+Textarea(
+    name: "",
+    value: "",
+    placeholder: "",
+    rows: 4,
+    onChange: null
+)
+    textarea(
+        name: name,
+        value: value,
+        placeholder: placeholder,
+        rows: rows,
+        onchange: onChange,
+        class: css!(Border, Rounded, P(2), TextBase, WFull, BorderGray300)
+    )
+
+// Checkbox component
+Checkbox(name: "", checked: false, onChange: null, label: "")
+    div.flex.items-center.gap-2
+        input(
+            type: "checkbox",
+            name: name,
+            checked: checked,
+            onchange: onChange,
+            class: css!(W(4), H(4), TextBlue600, BorderGray300)
+        )
+        
+        label.text-sm.text-gray-700
+            {label}
+
+// Radio button component
+Radio(name: "", value: "", checked: false, onChange: null, label: "")
+    div.flex.items-center.gap-2
+        input(
+            type: "radio",
+            name: name,
+            value: value,
+            checked: checked,
+            onchange: onChange,
+            class: css!(W(4), H(4), TextBlue600)
+        )
+        
+        label.text-sm.text-gray-700
+            {label}

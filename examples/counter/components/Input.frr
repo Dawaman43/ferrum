@@ -1,0 +1,109 @@
+// Input.frr - Enhanced input component with validation
+// Shows advanced component features
+
+Input(
+    type: "text",
+    name: "",
+    value: "",
+    placeholder: "",
+    label: "",
+    error: "",
+    help: "",
+    required: false,
+    disabled: false,
+    size: "md",         // sm, md, lg
+    variant: "default", // default, outlined, filled
+    validation: null,   // Validation function
+    onChange: null,
+    onBlur: null
+)
+    div
+        // Label
+        if label
+            label.block.text-sm.font-medium.text-gray-700.mb-1(
+                for: name
+            )
+                {label}
+                if required
+                    span.text-red-500.ml-1 "*"
+        
+        // Input wrapper
+        div.relative
+            input.rounded-md.border.transition-all.duration-200(
+                type: type,
+                name: name,
+                value: value,
+                placeholder: placeholder,
+                required: required,
+                disabled: disabled,
+                onchange: handle_change,
+                onblur: handle_blur,
+                
+                // Size variants
+                class: size == "sm" ? css!(TextSm, P(2)) :
+                       size == "md" ? css!(TextBase, P(2.5)) :
+                       css!(TextLg, P(3)),
+                
+                // Variant styles
+                class: variant == "outlined" ? (
+                    error ? css!(BorderRed500, FocusRingRed500, ShadowSm, ShadowRed100) :
+                    css!(BorderGray300, FocusRingBlue500, FocusBorderTransparent, ShadowSm, FocusShadowBlue100)
+                ) : variant == "filled" ? (
+                    error ? css!(BgRed50, BorderRed500) :
+                    css!(BgGray100, BorderTransparent, FocusBgWhite, FocusBorderBlue500)
+                ) : (
+                    error ? css!(BorderRed500, FocusRingRed500) :
+                    css!(BorderGray300, FocusRingBlue500, FocusBorderTransparent)
+                ),
+                
+                // State styles
+                class: disabled ? css!(BgGray50, TextGray500, CursorNotAllowed) : css!(),
+                class: css!(WFull, FocusOutlineNone, FocusRingOffset(2))
+            )
+            
+            // Error indicator with animation
+            if error
+                div.absolute.right-3.top-1/2.transform.-translate-y-1/2
+                    svg.w-5.h-5.text-red-500.animate-pulse(fill="currentColor")
+                        path(d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z")
+        
+        // Help text
+        if help && !error
+            p.mt-1.text-sm.text-gray-500 {help}
+        
+        // Error message with animation
+        if error
+            p.mt-1.text-sm.text-red-600.animate-fade-in {error}
+
+// Event handlers
+handle_change(event)
+    let new_value = event.target.value
+    
+    // Validation if provided
+    if validation
+        let validation_result = validation(new_value)
+        set_error(validation_result.error)
+        if validation_result.is_valid
+            onChange(new_value)
+    else
+        onChange(new_value)
+
+handle_blur()
+    if onBlur
+        onBlur()
+
+// Validation helper functions
+validate_email(email)
+    email.includes("@") && email.includes(".") ?
+        {is_valid: true, error: ""} :
+        {is_valid: false, error: "Please enter a valid email address"}
+
+validate_required(value)
+    value.length > 0 ?
+        {is_valid: true, error: ""} :
+        {is_valid: false, error: "This field is required"}
+
+validate_min_length(min)
+    (value) => value.length >= min ?
+        {is_valid: true, error: ""} :
+        {is_valid: false, error: `Minimum ${min} characters required`}
