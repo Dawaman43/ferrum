@@ -1,0 +1,14 @@
+!let count = 0
+
+!div.center.large
+    !h1 "Ferrum Test"
+    !button.primary !onclick count++
+        "Clicked {count} times"
+    
+    !if count >= 5
+        !success "You're a pro!"
+    !else
+        !info "Keep clicking..."
+
+!for i in 1..5
+    !item "Item {i}"

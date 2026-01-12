@@ -1,0 +1,11 @@
+// main.frr - Entry point for Ferrum application
+import { create_signal } from "ferrum:state"
+import { css } from "ferrum:css"
+
+App()
+    div.flex.flex-col.items-center.justify-center.min-h-screen.p-8
+        h1.text-3xl.font-bold.text-blue-600 "Welcome to test-lang"
+        p.text-gray-600.mt-4 "Your Ferrum app is ready!"
+        
+        Button(onclick: set_count(count + 1))
+            "Click count: {count}"
