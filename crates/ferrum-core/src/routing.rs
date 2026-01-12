@@ -1,6 +1,6 @@
-use std::collections::HashMap;
-use serde::{Deserialize, Serialize};
 use crate::component::{ComponentView, PropValue};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// Routing system for Ferrum applications
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -29,7 +29,7 @@ impl Router {
             }),
         }
     }
-    
+
     pub fn add_route(&mut self, path: &str, component: &str) {
         let route = Route {
             path: path.to_string(),
@@ -37,16 +37,16 @@ impl Router {
             params: HashMap::new(),
             query: HashMap::new(),
         };
-        
+
         self.routes.push(route);
         log::debug!("Added route: {} -> {}", path, component);
     }
-    
+
     pub fn navigate(&self, path: &str) {
         // Parse the path and find matching route
         if let Some(route) = self.find_route(path) {
             self.current_route.set(route);
-            
+
             // Update browser history (only available on client)
             #[cfg(feature = "client")]
             {
@@ -62,16 +62,13 @@ impl Router {
             }
         }
     }
-    
+
     fn find_route(&self, path: &str) -> Option<Route> {
         // Simple exact match for now
         // TODO: Implement parameter matching and wildcards
-        self.routes
-            .iter()
-            .find(|route| route.path == path)
-            .cloned()
+        self.routes.iter().find(|route| route.path == path).cloned()
     }
-    
+
     pub fn current_route(&self) -> Signal<Route> {
         self.current_route.clone()
     }
@@ -116,7 +113,7 @@ pub struct LinkProps {
 
 pub fn Link(props: LinkProps) -> ComponentView {
     let onclick = format!("ferrum.navigate('{}')", props.to);
-    
+
     ComponentView {
         tag: "a".to_string(),
         props: {

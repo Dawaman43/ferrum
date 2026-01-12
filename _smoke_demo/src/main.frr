@@ -1,7 +1,5 @@
-// Smoke test file: uses only the currently-implemented ferrum-core parser features.
-
 div#app.container
     h1.title
-        Hello
+        "Hello World"
     p.subtitle
-        Ferrum dev-server smoke test
+        "Ferrum is serving real HTML v2"

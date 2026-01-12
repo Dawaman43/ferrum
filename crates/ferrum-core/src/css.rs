@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// CSS-in-Rust styling system
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -17,22 +17,22 @@ impl Style {
             media_queries: Vec::new(),
         }
     }
-    
+
     pub fn property(mut self, name: &str, value: &str) -> Self {
         self.properties.insert(name.to_string(), value.to_string());
         self
     }
-    
+
     pub fn hover(mut self, style: Style) -> Self {
         self.pseudo_classes.insert(":hover".to_string(), style);
         self
     }
-    
+
     pub fn focus(mut self, style: Style) -> Self {
         self.pseudo_classes.insert(":focus".to_string(), style);
         self
     }
-    
+
     pub fn media(mut self, query: &str, style: Style) -> Self {
         self.media_queries.push((query.to_string(), style));
         self
@@ -74,7 +74,7 @@ pub enum UtilityClass {
     Block,
     Inline,
     Hidden,
-    
+
     // Flexbox
     FlexRow,
     FlexCol,
@@ -82,11 +82,11 @@ pub enum UtilityClass {
     JustifyBetween,
     ItemsCenter,
     ItemsStart,
-    
+
     // Spacing
     P(u8), // padding, 0-8 mapped to values
     M(u8), // margin, 0-8 mapped to values
-    
+
     // Typography
     TextSm,
     TextBase,
@@ -94,26 +94,26 @@ pub enum UtilityClass {
     TextXl,
     FontBold,
     FontMedium,
-    
+
     // Colors
     BgRed500,
     BgBlue500,
     BgGreen500,
     TextWhite,
     TextGray800,
-    
+
     // Sizing
     WAuto,
     WFull,
     HAuto,
     HFull,
-    
+
     // Border
     Border,
     Border2,
     Rounded,
     RoundedLg,
-    
+
     // Effects
     Shadow,
     ShadowLg,
@@ -129,7 +129,7 @@ impl UtilityClass {
             UtilityClass::Block => "display: block;".to_string(),
             UtilityClass::Inline => "display: inline;".to_string(),
             UtilityClass::Hidden => "display: none;".to_string(),
-            
+
             // Flexbox
             UtilityClass::FlexRow => "flex-direction: row;".to_string(),
             UtilityClass::FlexCol => "flex-direction: column;".to_string(),
@@ -137,11 +137,11 @@ impl UtilityClass {
             UtilityClass::JustifyBetween => "justify-content: space-between;".to_string(),
             UtilityClass::ItemsCenter => "align-items: center;".to_string(),
             UtilityClass::ItemsStart => "align-items: flex-start;".to_string(),
-            
+
             // Spacing
             UtilityClass::P(n) => format!("padding: {}rem;", *n as f64 * 0.25),
             UtilityClass::M(n) => format!("margin: {}rem;", *n as f64 * 0.25),
-            
+
             // Typography
             UtilityClass::TextSm => "font-size: 0.875rem;".to_string(),
             UtilityClass::TextBase => "font-size: 1rem;".to_string(),
@@ -149,29 +149,31 @@ impl UtilityClass {
             UtilityClass::TextXl => "font-size: 1.25rem;".to_string(),
             UtilityClass::FontBold => "font-weight: bold;".to_string(),
             UtilityClass::FontMedium => "font-weight: 500;".to_string(),
-            
+
             // Colors
             UtilityClass::BgRed500 => "background-color: #ef4444;".to_string(),
             UtilityClass::BgBlue500 => "background-color: #3b82f6;".to_string(),
             UtilityClass::BgGreen500 => "background-color: #10b981;".to_string(),
             UtilityClass::TextWhite => "color: white;".to_string(),
             UtilityClass::TextGray800 => "color: #1f2937;".to_string(),
-            
+
             // Sizing
             UtilityClass::WAuto => "width: auto;".to_string(),
             UtilityClass::WFull => "width: 100%;".to_string(),
             UtilityClass::HAuto => "height: auto;".to_string(),
             UtilityClass::HFull => "height: 100%;".to_string(),
-            
+
             // Border
             UtilityClass::Border => "border: 1px solid #e5e7eb;".to_string(),
             UtilityClass::Border2 => "border: 2px solid #e5e7eb;".to_string(),
             UtilityClass::Rounded => "border-radius: 0.25rem;".to_string(),
             UtilityClass::RoundedLg => "border-radius: 0.5rem;".to_string(),
-            
+
             // Effects
             UtilityClass::Shadow => "box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);".to_string(),
-            UtilityClass::ShadowLg => "box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);".to_string(),
+            UtilityClass::ShadowLg => {
+                "box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);".to_string()
+            }
             UtilityClass::Opacity50 => "opacity: 0.5;".to_string(),
         }
     }
@@ -190,32 +192,32 @@ impl CssBuilder {
             custom_styles: Vec::new(),
         }
     }
-    
+
     pub fn add(mut self, class: UtilityClass) -> Self {
         self.classes.push(class);
         self
     }
-    
+
     pub fn custom(mut self, css: &str) -> Self {
         self.custom_styles.push(css.to_string());
         self
     }
-    
+
     pub fn build(self) -> String {
         let mut css_string = String::new();
-        
+
         // Add utility class CSS
         for class in &self.classes {
             css_string.push_str(&class.to_css());
             css_string.push(' ');
         }
-        
+
         // Add custom CSS
         for style in &self.custom_styles {
             css_string.push_str(style);
             css_string.push(' ');
         }
-        
+
         css_string.trim().to_string()
     }
 }

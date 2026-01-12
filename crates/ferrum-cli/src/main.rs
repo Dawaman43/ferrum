@@ -1,17 +1,17 @@
 use clap::{Parser, Subcommand};
-use std::path::Path;
 use ferrum_core::parser;
+use std::path::Path;
 
 fn create_project(name: &str, _template: &str) -> std::io::Result<()> {
     println!("Initializing Ferrum project: {}", name);
-    
+
     // Create project directory structure
     std::fs::create_dir_all(format!("{}/src/components", name))?;
     std::fs::create_dir_all(format!("{}/src/pages", name))?;
     std::fs::create_dir_all(format!("{}/src/api", name))?;
     std::fs::create_dir_all(format!("{}/style", name))?;
     std::fs::create_dir_all(format!("{}/tests", name))?;
-    
+
     // Create main.frr file
     let main_frr = format!(
         r#"// main.frr - Entry point for Ferrum application
@@ -28,9 +28,9 @@ App()
 "#,
         name
     );
-    
+
     std::fs::write(format!("{}/src/main.frr", name), main_frr)?;
-    
+
     // Create Button.frr component
     let button_frr = r#"// Button.frr - Reusable button component
 Button(onclick: null, variant: "primary", children: "")
@@ -41,9 +41,9 @@ Button(onclick: null, variant: "primary", children: "")
         onclick: onclick
     )
         {children}"#;
-    
+
     std::fs::write(format!("{}/src/components/Button.frr", name), button_frr)?;
-    
+
     // Create Cargo.toml
     let cargo_toml = format!(
         r#"[package]
@@ -75,9 +75,9 @@ features = [
 "#,
         name
     );
-    
+
     std::fs::write(format!("{}/Cargo.toml", name), cargo_toml)?;
-    
+
     // Create index.html
     let index_html = r#"<!DOCTYPE html>
 <html lang="en">
@@ -97,14 +97,14 @@ features = [
     <div id="root"></div>
 </body>
 </html>"#;
-    
+
     std::fs::write(format!("{}/index.html", name), index_html)?;
-    
+
     println!("✅ Project '{}' created successfully!", name);
     println!("📁 Next steps:");
     println!("   cd {}", name);
     println!("   ferrum dev");
-    
+
     Ok(())
 }
 
@@ -116,25 +116,25 @@ fn start_dev_server() -> std::io::Result<()> {
         eprintln!("   Pure Rust - NO JavaScript, NO Single HTML");
         std::process::exit(1);
     }
-    
+
     println!("🦀 Starting Pure Rust Ferrum Server");
     println!("📁 Project: {}", std::env::current_dir().unwrap().display());
     println!("🌐 Port: 7777");
     println!("🔥 Pure Rust: NO JavaScript, NO Single HTML");
     println!("👀 Watching .frr files...");
-    
+
     // Start the actual dev server
     let dev_server_path = std::env::current_dir()
         .unwrap()
         .join("../target/debug/ferrum-dev-server");
-    
+
     if dev_server_path.exists() {
         println!("🚀 Launching dev server...");
         std::process::Command::new(&dev_server_path)
             .arg("7777")
             .spawn()
             .expect("Failed to start dev server");
-        
+
         println!("✨ Server started at: http://localhost:7777");
         println!("📝 Features:");
         println!("   • Pure Rust server (NO JavaScript)");
@@ -151,7 +151,7 @@ fn start_dev_server() -> std::io::Result<()> {
         println!("   • CSS-in-Rust styling");
         println!("   • Component compilation");
     }
-    
+
     Ok(())
 }
 
@@ -188,7 +188,7 @@ pub enum Commands {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
-    
+
     match cli.command {
         Commands::Create { name, template } => {
             println!("Creating new Ferrum project: {}", name);
@@ -198,7 +198,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Commands::Dev => {
             println!("Starting Ferrum development server...");
-Ok(start_dev_server()?)
+            Ok(start_dev_server()?)
         }
         Commands::Build => {
             println!("Building Ferrum application for production...");

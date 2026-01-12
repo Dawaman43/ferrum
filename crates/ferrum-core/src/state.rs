@@ -1,11 +1,11 @@
-use std::sync::{Arc, RwLock};
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::sync::{Arc, RwLock};
 
 /// State management system for Ferrum applications
 pub trait State: Send + Sync {
     type Value: Clone + Send + Sync;
-    
+
     fn get(&self) -> Self::Value;
     fn set(&mut self, value: Self::Value);
     fn subscribe(&mut self, callback: Box<dyn Fn(Self::Value) + Send + Sync>);
@@ -31,27 +31,29 @@ where
             value: initial_value,
             subscribers: Vec::new(),
         };
-        
+
         Self {
             inner: Arc::new(RwLock::new(inner)),
         }
     }
-    
+
     pub fn get(&self) -> T {
-        let inner = self.inner.read().unwrap();
+        let inner = self.inner.read().map_err(|_| {
+            std::io::Error::new(std::io::ErrorKind::Other, "State lock poisoned")
+        })?;
         inner.value.clone()
     }
-    
+
     pub fn set(&self, value: T) {
         let mut inner = self.inner.write().unwrap();
         inner.value = value.clone();
-        
+
         // Notify all subscribers
         for callback in &inner.subscribers {
             callback(&inner.value);
         }
     }
-    
+
     pub fn subscribe<F>(&self, callback: F)
     where
         F: Fn(&T) + Send + Sync + 'static,
@@ -67,33 +69,75 @@ pub struct Store {
 }
 
 impl Store {
-    pub fn new() -> Self {
+pub fn new() -> Self {
         Self {
             signals: HashMap::new(),
         }
     }
-    
+
     pub fn signal<T>(&mut self, key: &str, initial_value: T) -> Signal<T>
     where
         T: Clone + Send + Sync + 'static,
     {
         let signal = Signal::new(initial_value);
-        
+
         // Store the signal for later access
         let signal_clone = signal.clone();
         self.signals.insert(key.to_string(), Box::new(signal_clone));
-        
+
         signal
     }
-    
+
+    pub fn get(&self) -> Arc<RwLock<T>> {
+        let inner = self.inner.read().map_err(|_| {
+            std::io::Error::new(std::io::ErrorKind::Other, "State lock poisoned")
+        })?;
+        inner.value.clone()
+    }
+
+    pub fn set(&self, value: T) -> Result<(), Box<dyn std::error::Error>> {
+        let mut inner = self.inner.write().map_err(|_| {
+            std::io::Error::new(std::io::ErrorKind::Other, "State lock poisoned")
+        })?;
+        inner.value = value.clone();
+
+        // Notify all subscribers
+        for callback in &inner.subscribers {
+            callback(&inner.value);
+        }
+        Ok(())
+    }
+
+    pub fn subscribe<F>(&self, callback: F) -> Result<(), Box<dyn std::error::Error>>
+    where
+        F: Fn(&T) + Send + Sync + 'static,
+    {
+        let mut inner = self.inner.write().map_err(|_| {
+            std::io::Error::new(std::io::ErrorKind::Other, "State lock poisoned")
+        })?;
+        inner.subscribers.push(Box::new(callback));
+        Ok(())
+    }
+    }
+
+    pub fn signal<T>(&mut self, key: &str, initial_value: T) -> Signal<T>
+    where
+        T: Clone + Send + Sync + 'static,
+    {
+        let signal = Signal::new(initial_value);
+
+        // Store the signal for later access
+        let signal_clone = signal.clone();
+        self.signals.insert(key.to_string(), Box::new(signal_clone));
+
+        signal
+    }
+
     pub fn get_signal<T>(&self, key: &str) -> Option<Signal<T>>
     where
         T: Clone + Send + Sync + 'static,
     {
-        self.signals
-            .get(key)?
-            .downcast_ref::<Signal<T>>()
-            .cloned()
+        self.signals.get(key)?.downcast_ref::<Signal<T>>().cloned()
     }
 }
 
@@ -133,7 +177,7 @@ where
             handler: Box::new(handler),
         }
     }
-    
+
     pub fn dispatch(&self, value: T) -> R {
         (self.handler)(value)
     }
@@ -157,7 +201,7 @@ where
             error: Signal::new(None),
         }
     }
-    
+
     pub async fn fetch<F, Fut>(&self, fetcher: F)
     where
         F: FnOnce() -> Fut + Send + Sync,
@@ -165,7 +209,7 @@ where
     {
         self.loading.set(true);
         self.error.set(None);
-        
+
         match fetcher().await {
             Ok(result) => {
                 self.data.set(Some(result));
@@ -177,15 +221,15 @@ where
             }
         }
     }
-    
+
     pub fn data(&self) -> Signal<Option<T>> {
         self.data.clone()
     }
-    
+
     pub fn loading(&self) -> Signal<bool> {
         self.loading.clone()
     }
-    
+
     pub fn error(&self) -> Signal<Option<String>> {
         self.error.clone()
     }

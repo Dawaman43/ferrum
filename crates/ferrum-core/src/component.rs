@@ -1,12 +1,14 @@
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// Trait that all components must implement
 pub trait Component: 'static {
     type Props;
     type Msg;
-    
-    fn create(props: Self::Props) -> Self where Self: Sized;
+
+    fn create(props: Self::Props) -> Self
+    where
+        Self: Sized;
     fn update(&mut self, msg: Self::Msg) -> bool;
     fn view(&self) -> ComponentView;
 }
@@ -41,12 +43,13 @@ impl ComponentRegistry {
             components: HashMap::new(),
         }
     }
-    
+
     pub fn register(&mut self, name: String) {
-        self.components.insert(name.clone(), "registered".to_string());
+        self.components
+            .insert(name.clone(), "registered".to_string());
         log::debug!("Registered component: {}", name);
     }
-    
+
     pub fn get_component(&self, name: &str) -> Option<&str> {
         self.components.get(name).map(|s| s.as_str())
     }

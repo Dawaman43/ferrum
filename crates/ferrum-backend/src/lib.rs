@@ -1,5 +1,5 @@
-use leptos::*;
 use ferrum_core::*;
+use leptos::*;
 
 pub fn render_app() -> impl IntoView {
     view! {

@@ -1,0 +1,64 @@
+// main.frr - Entry point for Ferrum applications
+// This demonstrates the complete .frr syntax and capabilities
+
+import { create_signal } from "ferrum:state"
+import { css } from "ferrum:css"
+import { Button } from "./components/Button.frr"
+import { Card } from "./components/Card.frr"
+import { Input } from "./components/Input.frr"
+
+// Global application state
+state app = {
+    title: "My Ferrum App",
+    user: null,
+    theme: "light"
+}
+
+// Initialize app
+App()
+    div.min-h-screen.bg-gray-50
+        Header()
+        Main()
+        Footer()
+
+// Header component
+Header()
+    header.bg-white.shadow-sm
+        div.max-w-7xl.mx-auto.px-4.sm.px-6.lg.px-8
+            div.flex.justify-between.items-center.py-6
+                h1.text-2xl.font-bold.text-gray-900 {app.title}
+                
+                nav
+                    Button(variant: "ghost", onclick: toggleTheme)
+                        {app.theme == "light" ? "🌙" : "☀️"}
+
+// Main content area
+Main()
+    main.max-w-7xl.mx-auto.py-6.sm.px-6.lg.px-8
+        // Hero section
+        Section()
+            div.text-center
+                h1.text-4xl.font-bold.text-gray-900.sm:text-5xl
+                    "Welcome to Ferrum"
+                
+                p.mt-3.max-w-2xl.mx-auto.text-xl.text-gray-500
+                    "The Rust framework that makes web development type-safe, fast, and fun."
+                
+                div.mt-8.flex.justify-center.gap-4
+                    Button(variant: "primary", size: "lg")
+                        "Get Started"
+                    
+                    Button(variant: "outline", size: "lg")
+                        "View Docs"
+
+// Footer component
+Footer()
+    footer.bg-white.border-t.border-gray-200
+        div.max-w-7xl.mx-auto.py-8.px-4.sm.px-6.lg.px-8
+            div.text-center.text-sm.text-gray-500
+                p "Built with ❤️ and Rust"
+                p.mt-2 "© 2025 Ferrum Framework"
+
+// Section component wrapper
+Section()
+    section.py-12

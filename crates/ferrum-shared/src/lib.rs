@@ -1,6 +1,6 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use chrono::{DateTime, Utc};
 
 /// Common types that can be shared between frontend and backend
 #[derive(Debug, Clone, Serialize, Deserialize)]
