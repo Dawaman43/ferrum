@@ -6,27 +6,26 @@ use std::time::SystemTime;
 use tokio::sync::RwLock;
 use axum::{
     extract::{Path as AxumPath, State},
-    http::{StatusCode, header::CONTENT_TYPE},
+    http::StatusCode,
     response::{Html, IntoResponse, Response},
     routing::{get, Router},
-    Server,
+    Json,
 };
 use tower::ServiceBuilder;
 use tower_http::{
     services::ServeDir,
     cors::CorsLayer,
 };
-use notify::{Watcher, RecursiveMode, RecommendedWatcher, Event, EventKind};
+use notify::{Watcher, RecursiveMode, RecommendedWatcher, EventKind, Config};
 use serde_json::json;
-use anyhow::Result;
-use ferrum_core::parser::{FerrumParser, compile_frr_to_rust};
+use anyhow::{Result, anyhow};
+use ferrum_core::parser::FerrumParser;
 
 /// Pure Rust Development Server
 /// NO JavaScript, NO Single HTML - Everything handled by Rust
 pub struct RustDevServer {
     port: u16,
     project_path: String,
-    watcher: RecommendedWatcher,
     compiled_components: Arc<RwLock<HashMap<String, String>>>,
     server_state: Arc<RwLock<ServerState>>,
 }
@@ -40,7 +39,6 @@ struct ServerState {
 
 impl RustDevServer {
     pub fn new(project_path: String, port: u16) -> Result<Self> {
-        let (watcher, _rx) = RecommendedWatcher::new()?;
         let compiled_components = Arc::new(RwLock::new(HashMap::new()));
         let server_state = Arc::new(RwLock::new(ServerState {
             last_reload: SystemTime::now(),
@@ -51,7 +49,6 @@ impl RustDevServer {
         Ok(Self {
             port,
             project_path,
-            watcher,
             compiled_components,
             server_state,
         })
@@ -79,7 +76,13 @@ impl RustDevServer {
         let server_state = self.server_state.clone();
         
         tokio::spawn(async move {
-            let (mut watcher, mut rx) = match RecommendedWatcher::new() {
+            let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<notify::Result<notify::Event>>();
+            let mut watcher = match RecommendedWatcher::new(
+                move |res| {
+                    let _ = tx.send(res);
+                },
+                Config::default(),
+            ) {
                 Ok(w) => w,
                 Err(e) => {
                     eprintln!("❌ Failed to create watcher: {}", e);
@@ -100,34 +103,36 @@ impl RustDevServer {
                 return;
             }
             
-            while let Some(event) = rx.recv() {
-                match event {
+            while let Some(res) = rx.recv().await {
+                match res {
                     Ok(event) => {
-                        for event in event {
-                            if event.kind == EventKind::Modify {
-                                if let Some(path) = event.paths.first() {
-                                    if path.extension().map_or(false, |ext| ext == "frr") {
-                                        println!("🔄 Changed: {:?}", path.file_name());
-                                        
-                                        match self::compile_frr_file(&path) {
-                                            Ok(compiled) => {
-                                                // Update compiled components
-                                                let mut components = compiled_components.write().await;
-                                                let path_str = path.to_string_lossy().to_string();
-                                                components.insert(path_str.clone(), compiled.clone());
-                                                
-                                                // Update server state
-                                                let mut state = server_state.write().await;
-                                                state.last_reload = SystemTime::now();
-                                                state.compiled_files.insert(path_str, compiled);
-                                                
-                                                println!("✅ Compiled: {:?}", path.file_name());
-                                            }
-                                            Err(e) => {
-                                                eprintln!("❌ Compilation failed: {}", e);
-                                            }
-                                        }
-                                    }
+                        if !matches!(event.kind, EventKind::Modify(_) | EventKind::Create(_)) {
+                            continue;
+                        }
+
+                        for path in event.paths {
+                            if path.extension().and_then(|ext| ext.to_str()) != Some("frr") {
+                                continue;
+                            }
+
+                            println!("🔄 Changed: {:?}", path.file_name());
+
+                            match self::compile_frr_file(&path) {
+                                Ok(compiled) => {
+                                    // Update compiled components
+                                    let mut components = compiled_components.write().await;
+                                    let path_str = path.to_string_lossy().to_string();
+                                    components.insert(path_str.clone(), compiled.clone());
+
+                                    // Update server state
+                                    let mut state = server_state.write().await;
+                                    state.last_reload = SystemTime::now();
+                                    state.compiled_files.insert(path_str, compiled);
+
+                                    println!("✅ Compiled: {:?}", path.file_name());
+                                }
+                                Err(e) => {
+                                    eprintln!("❌ Compilation failed: {}", e);
                                 }
                             }
                         }
@@ -162,13 +167,12 @@ impl RustDevServer {
             )
             .with_state(app_state);
         
-        let addr = format!("127.0.0.1:{}", self.port).parse()?;
+        let addr = ("127.0.0.1", self.port);
         
         println!("🌐 Pure Rust server ready at: http://localhost:{}", self.port);
-        
-        Server::bind(&addr)
-            .serve(app.into_make_service())
-            .await?;
+
+        let listener = tokio::net::TcpListener::bind(addr).await?;
+        axum::serve(listener, app).await?;
         
         Ok(())
     }
@@ -176,26 +180,14 @@ impl RustDevServer {
 
 /// Generate main page from main.frr - NO JavaScript!
 async fn generate_main_page(
-    State(state): State<Arc<RwLock<ServerState>>>
+    State(_state): State<Arc<RwLock<ServerState>>>
 ) -> impl IntoResponse {
-    let current_state = state.read().await;
-    
     // Try to read and compile main.frr
     match compile_main_frr() {
-        Ok(html_content) => {
-            Response::builder()
-                .status(StatusCode::OK)
-                .header(CONTENT_TYPE, "text/html")
-                .body(html_content)
-                .unwrap()
-        }
+        Ok(html_content) => Html(html_content).into_response(),
         Err(e) => {
             let error_html = generate_error_page(&format!("Failed to compile main.frr: {}", e));
-            Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .header(CONTENT_TYPE, "text/html")
-                .body(error_html)
-                .unwrap()
+            (StatusCode::INTERNAL_SERVER_ERROR, Html(error_html)).into_response()
         }
     }
 }
@@ -203,21 +195,15 @@ async fn generate_main_page(
 /// Generate individual component pages
 async fn generate_component_page(
     AxumPath(component): AxumPath<String>,
-    State(state): State<Arc<RwLock<ServerState>>>
-) -> impl IntoResponse {
+    State(_state): State<Arc<RwLock<ServerState>>>
+) -> Response {
     let component_path = format!("src/components/{}.frr", component);
     
     match compile_frr_file(Path::new(&component_path)) {
-        Ok(html_content) => {
-            Html(html_content)
-        }
+        Ok(html_content) => Html(html_content).into_response(),
         Err(e) => {
             let error_html = generate_error_page(&format!("Failed to compile component {}: {}", component, e));
-            Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .header(CONTENT_TYPE, "text/html")
-                .body(error_html)
-                .unwrap()
+            (StatusCode::INTERNAL_SERVER_ERROR, Html(error_html)).into_response()
         }
     }
 }
@@ -239,7 +225,7 @@ async fn api_status(
         "active_routes": current_state.active_routes.len()
     });
     
-    (StatusCode::OK, [(CONTENT_TYPE, "application/json")], status).into_response()
+    (StatusCode::OK, Json(status))
 }
 
 /// API endpoint to list all compiled components
@@ -253,7 +239,7 @@ async fn api_components(
         "total": current_state.compiled_files.len()
     });
     
-    (StatusCode::OK, [(CONTENT_TYPE, "application/json")], components).into_response()
+    (StatusCode::OK, Json(components))
 }
 
 /// API endpoint to trigger manual reload
@@ -268,7 +254,7 @@ async fn api_reload(
         "timestamp": current_state.last_reload.duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs()
     });
     
-    (StatusCode::OK, [(CONTENT_TYPE, "application/json")], response).into_response()
+    (StatusCode::OK, Json(response))
 }
 
 /// Compile main.frr file
@@ -417,10 +403,11 @@ fn generate_error_page(error_message: &str) -> String {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    console_log::init_with_level(log::Level::Info)?;
+    console_log::init_with_level(log::Level::Info)
+        .map_err(|e| anyhow!(e.to_string()))?;
     
     let args: Vec<String> = std::env::args().collect();
-    let port = args.get(2)
+    let port = args.get(1)
         .and_then(|p| p.parse::<u16>().ok())
         .unwrap_or(7777);
     
@@ -438,5 +425,5 @@ async fn main() -> Result<()> {
     
     // Start pure Rust dev server
     let server = RustDevServer::new(project_path, port)?;
-    server.run.await
+    server.run().await
 }

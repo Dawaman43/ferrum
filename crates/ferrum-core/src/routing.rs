@@ -51,11 +51,13 @@ impl Router {
             #[cfg(feature = "client")]
             {
                 if let Some(window) = web_sys::window() {
-                    let _ = window.history().push_state_with_url(
-                        &wasm_bindgen::JsValue::NULL,
-                        "",
-                        Some(path),
-                    );
+                    if let Ok(history) = window.history() {
+                        let _ = history.push_state_with_url(
+                            &wasm_bindgen::JsValue::NULL,
+                            "",
+                            Some(path),
+                        );
+                    }
                 }
             }
         }

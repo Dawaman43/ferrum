@@ -7,7 +7,8 @@ members = [
     "crates/ferrum-backend",
     "crates/ferrum-shared",
     "crates/ferrum-dev-server",
-    "examples/counter"
+    # Examples can be built explicitly, but aren't required for workspace tests.
+    # "examples/counter"
 ]
 
 [workspace.package]
@@ -28,7 +29,8 @@ tower = "0.4"
 tower-http = { version = "0.5", features = ["cors", "fs"] }
 
 # Frontend dependencies
-leptos = { version = "0.6", features = ["csr", "nightly"] }
+# Keep this workspace building on stable Rust by avoiding Leptos' `nightly` feature.
+leptos = { version = "0.6", features = ["csr"] }
 leptos_axum = { version = "0.6" }
 leptos_meta = { version = "0.6", features = ["csr"] }
 leptos_router = { version = "0.6", features = ["csr"] }
